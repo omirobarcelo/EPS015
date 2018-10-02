@@ -1,14 +1,19 @@
 /*
- * Main
+ * GFrame
+ *
+ * Constants:
+ * G1PAN/G2PAN - Used to indicate the current mode.
  *
  * Global variables:
- * Self explanatory
+ * Self explanatory.
+ * mode initialized to Game 1 Panel to start on Game 1.
  *
  * Constructors:
- * Main - JFrame window setup. 800x600px, screen centered, no resizable.
+ * GFrame - JFrame window setup. 800x600px, screen centered, no resizable.
  *
  * Methods:
  * initComponents - Menu Bar, Menus and MenuItems implementation.
+ * showRGame1Dialog/showRGame2Dialog - 
  *
  * Events:
  * actionPerformed - Identifies which menu item has provoked the event and
@@ -266,9 +271,16 @@ public class GFrame extends JFrame implements ActionListener,
                                               KeyListener {
 
     //////////////////////////////////////////////
+    // CONSTANTS                                //
+    //////////////////////////////////////////////
+    public static final boolean G1PAN = true;
+    public static final boolean G2PAN = false;
+
+    //////////////////////////////////////////////
     // GLOBAL VARIABLES                         //
     //////////////////////////////////////////////
-    GPanel gpan;
+    GPanel g1pan;
+    G2Panel g2pan;
     private JMenuBar jmbarE15;
     private JMenu jmInici;
     private JMenu jmAjuda;
@@ -284,26 +296,36 @@ public class GFrame extends JFrame implements ActionListener,
     private JMenuItem jmItemRJoc1;
     private JMenuItem jmItemRJoc2;
 
+    public boolean mode = G1PAN;
+
     //////////////////////////////////////////////
     // CONSTRUCTORS                             //
     //////////////////////////////////////////////
     public GFrame() {
         super("EPS015");
-        gpan = new GPanel();
-        gpan.addMouseListener(this);
-        gpan.addMouseMotionListener(this);
-        gpan.addKeyListener(this);
-        gpan.setFocusable(true);        // Gives the keyboard focus, needed for KeyEvents
-        this.getContentPane().add(gpan);
-        this.setSize(gpan.getPreferredSize());
+        g1pan = new GPanel();
+        g2pan = new G2Panel();
+        g1pan.addMouseListener(this);
+        g2pan.addMouseListener(this);
+        g1pan.addMouseMotionListener(this);
+        g2pan.addMouseMotionListener(this);
+        g1pan.addKeyListener(this);
+        g2pan.addKeyListener(this);
+        // Gives the keyboard focus, needed for KeyEvents
+        g1pan.setFocusable(true);
+        g2pan.setFocusable(true);
+
+        this.getContentPane().add(g1pan);
+        this.setSize(g1pan.getPreferredSize());
         this.pack();
         this.setLocationRelativeTo(null);
         this.setResizable(false);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         initComponents();
+
         // Start frame with level 1 game and its rules
-        gpan.plotCurve(1);
-        this.showRJoc1Dialog();
+        g1pan.plotCurve(1);
+        this.showRGame1Dialog();
     }
 
     //////////////////////////////////////////////
@@ -386,7 +408,7 @@ public class GFrame extends JFrame implements ActionListener,
         this.setJMenuBar(jmbarE15);
     }
 
-    private void showRJoc1Dialog() {
+    private void showRGame1Dialog() {
         String rjoc1 = "  Dibuixa la trajectòria de la roda posterior d'una bicicleta!"
                 + "\n\n  La línia vermella representa el moviment de la roda davantera"
                 + " d'una bicicleta, i el teu \nobjectiu és dibuixar el recorregut de "
@@ -400,6 +422,20 @@ public class GFrame extends JFrame implements ActionListener,
                 JOptionPane.PLAIN_MESSAGE);
     }
 
+    private void showRGame2Dialog() {
+        String rjoc2 = "  Arriba al final sense pegar-te amb cap obstacle!\n\n"
+                + "  Comença en el recuadre a l'esquerra i avança fins al final."
+                + " Si toques un obstacle hauràs\nde recomençar. Si passes pels "
+                + "punts obtendràs una bonificació a la puntuació.\n\n  La teva "
+                + "puntuació serà la longitut del recorregut que facis, per tant"
+                + " quant més curt\nsigui el teu recorregut millor!\n\n  En acabar"
+                + " se't mostrarà la teva puntuació i les teves bonificacions.\n"
+                + "\n  Sort!";
+            JOptionPane jopRJoc2 = new JOptionPane();
+            JOptionPane.showMessageDialog(jopRJoc2, rjoc2, "Regles Joc 2",
+                JOptionPane.PLAIN_MESSAGE);
+    }
+
     //////////////////////////////////////////////
     // EVENTS                                   //
     //////////////////////////////////////////////
@@ -408,57 +444,71 @@ public class GFrame extends JFrame implements ActionListener,
         JMenuItem item = (JMenuItem)evt.getSource();
         // Exit Game
         if (item == jmItemExit) System.exit(0);
-        // Joc 1 rules
+        // Game 1 rules
         else if (item == jmItemRJoc1) {
-            this.showRJoc1Dialog();
+            this.showRGame1Dialog();
         }
-        // Joc 2 rules
+        // Game 2 rules
         else if (item == jmItemRJoc2) {
-            String rjoc2 = "  L'objectiu del joc és aconseguir destapar totes les "
-                    + "mines sense explotar-ne cap.\n\n  Hi ha deu mines amagades, així "
-                    + "que vés en compte on cliques!\n\n  Clicant amb el botó esquerre "
-                    + "destapes la casella i amb el botó dret indiques que \nen la "
-                    + "casella pot haver una mina. Una vegada destapada la casella, "
-                    + "el nombre indica \nla quantitat de mines al voltant. Les diagonals "
-                    + "de la casella també compten.\n\n  Sort!";
-            JOptionPane jopRJoc2 = new JOptionPane();
-            JOptionPane.showMessageDialog(jopRJoc2, rjoc2, "Regles Joc 2",
-                JOptionPane.PLAIN_MESSAGE);
+            this.showRGame2Dialog();
         }
-        // Select Joc 1 - Level 1
-        else if (item == jmItemN1) {
-            System.out.println("N1");
-            gpan.plotCurve(1);
+        // If Game 1 levels are selected
+        else if (item == jmItemN1 || item == jmItemN2 || item == jmItemN3) {
+            // If necessary a change of mode
+            if (mode == G2PAN) {
+                mode = G1PAN;
+                this.getContentPane().remove(g2pan);
+                //this.getContentPane().add(g2pan);
+                this.setContentPane(g1pan);
+    //            this.invalidate();
+                this.validate();
+    //            this.pack();
+                repaint();
+            }
+            // Select Game 1 - Level 1
+            if (item == jmItemN1) {
+                System.out.println("N1");
+                g1pan.plotCurve(1);
+            }
+            // Select Game 1 - Level 2
+            else if (item == jmItemN2) {
+                System.out.println("N2");
+                g1pan.plotCurve(2);
+            }
+            // Select Game 1 - Level 3
+            else if (item == jmItemN3) {
+                System.out.println("N3");
+                g1pan.plotCurve(3);
+            }
         }
-        // Select Joc 1 - Level 2
-        else if (item == jmItemN2) {
-            System.out.println("N2");
-            gpan.plotCurve(2);
-        }
-        // Select Joc 1 - Level 3
-        else if (item == jmItemN3) {
-            System.out.println("N3");
-            gpan.plotCurve(3);
-        }
-        // Select Joc 2 - Level Easy
-        else if (item == jmItemNF) {
-            System.out.println("NF");
-            G2Panel g2pan = new G2Panel();
-            this.getContentPane().remove(gpan);
-            //this.getContentPane().add(g2pan);
-            this.setContentPane(g2pan);
-//            this.invalidate();
-            this.validate();
-//            this.pack();
-            repaint();
-        }
-        // Select Joc 2 - Level Normal
-        else if (item == jmItemNN) {
-            System.out.println("NN");
-        }
-        // Select Joc 2 - Level Hard
-        else if (item == jmItemND) {
-            System.out.println("ND");
+        // If Game 2 levels are selected
+        else if (item == jmItemNF || item == jmItemNN || item == jmItemND) {
+            // If necessary a change of mode
+            if (mode == G1PAN) {
+                mode = G2PAN;
+                this.getContentPane().remove(g1pan);
+                //this.getContentPane().add(g2pan);
+                this.setContentPane(g2pan);
+    //            this.invalidate();
+                this.validate();
+    //            this.pack();
+                repaint();
+            }
+            // Select Game 2 - Level Easy
+            if (item == jmItemNF) {
+                System.out.println("NF");
+                g2pan.selectLevel(1);
+            }
+            // Select Game 2 - Level Normal
+            else if (item == jmItemNN) {
+                System.out.println("NN");
+                g2pan.selectLevel(2);
+            }
+            // Select Game 2 - Level Hard
+            else if (item == jmItemND) {
+                System.out.println("ND");
+                g2pan.selectLevel(3);
+            }
         }
     }
 
@@ -470,20 +520,32 @@ public class GFrame extends JFrame implements ActionListener,
     // have finished.
     public void mousePressed(MouseEvent me) {
 //        throw new UnsupportedOperationException("Not supported yet.");
-        if (!gpan.drawFinished())
-            gpan.setFirstDrawnPoint(me);
+        if (mode == G1PAN) {
+            if (!g1pan.drawFinished())
+                g1pan.setFirstDrawnPoint(me);
+        } else if (mode ==G2PAN) {
+            if (!g2pan.drawFinished())
+                g2pan.setFirstDrawnPoint(me);
+        }
     }
 
     public void mouseDragged(MouseEvent me) {
-        
-        if (!gpan.drawFinished())
-            gpan.setDrawnPoint(me);
+        if (mode == G1PAN) {
+            if (!g1pan.drawFinished())
+                g1pan.setDrawnPoint(me);
+        } else if (mode == G2PAN) {
+            g2pan.setDrawnPoint(me);
+        }
     }
 
     public void mouseReleased(MouseEvent me) {
 //        throw new UnsupportedOperationException("Not supported yet.");
-        if (!gpan.drawFinished())
-            gpan.checkLastPoint(me);
+        if (mode == G1PAN) {
+        if (!g1pan.drawFinished())
+            g1pan.checkLastPoint(me);
+        } else if (mode == G2PAN) {
+            g2pan.checkLastPoint(me);
+        }
     }
 
     public void mouseMoved(MouseEvent me) {
@@ -523,29 +585,55 @@ public class GFrame extends JFrame implements ActionListener,
 //                    gpan.plotCurve(((gpan.getCurrentLevel() + 1)<=3)?(gpan.getCurrentLevel() + 1):3);
 //            }
 
-            if (gpan.drawFinished()) {
-                // Show user his results
-                float score = gpan.calcScore();
-                // JOptionPane construction
-                Object[] buttonOptions3 = {"Següent nivell", "Sortir", "Recomençar"};
-                int option3 = JOptionPane.showOptionDialog(this, "La teva puntuació és "
-                    +score+".", "Fi de joc", JOptionPane.YES_NO_CANCEL_OPTION,
-                    JOptionPane.PLAIN_MESSAGE, null, buttonOptions3, buttonOptions3[0]);
-                // "Recomençar" option
-                if (option3 == 2) gpan.plotCurve(gpan.getCurrentLevel());
-                // "Sortir" option
-                else if(option3 == 1) System.exit(0);
-                // "Següent nivell" option
-                else if (option3 == 0)
-                    gpan.plotCurve(((gpan.getCurrentLevel() + 1)<=3)?(gpan.getCurrentLevel() + 1):3);
-             } else {
-                Object[] buttonOptions = {"Cancel·lar", "Recomençar"};
-                int option2 = JOptionPane.showOptionDialog(this, "Vols tornar a començar?",
-                        "Fi de joc", JOptionPane.YES_NO_OPTION,
-                        JOptionPane.PLAIN_MESSAGE, null, buttonOptions, buttonOptions[0]);
-                // "Recomençar" option
-                if (option2 == 1) gpan.plotCurve(gpan.getCurrentLevel());
-             }
+            if (mode == G1PAN) {
+                if (g1pan.drawFinished()) {
+                    // Show user his results
+                    float score = g1pan.calcScore();
+                    // JOptionPane construction
+                    Object[] buttonOptions3 = {"Següent nivell", "Sortir", "Recomençar"};
+                    int option3 = JOptionPane.showOptionDialog(this, "La teva puntuació és "
+                        +score+".", "Fi de joc", JOptionPane.YES_NO_CANCEL_OPTION,
+                        JOptionPane.PLAIN_MESSAGE, null, buttonOptions3, buttonOptions3[0]);
+                    // "Recomençar" option
+                    if (option3 == 2) g1pan.plotCurve(g1pan.getCurrentLevel());
+                    // "Sortir" option
+                    else if(option3 == 1) System.exit(0);
+                    // "Següent nivell" option
+                    else if (option3 == 0)
+                        g1pan.plotCurve(((g1pan.getCurrentLevel() + 1)<=3)?(g1pan.getCurrentLevel() + 1):3);
+                } else {
+                    Object[] buttonOptions = {"Cancel·lar", "Recomençar"};
+                    int option2 = JOptionPane.showOptionDialog(this, "Vols tornar a començar?",
+                            "Fi de joc", JOptionPane.YES_NO_OPTION,
+                            JOptionPane.PLAIN_MESSAGE, null, buttonOptions, buttonOptions[0]);
+                    // "Recomençar" option
+                    if (option2 == 1) g1pan.plotCurve(g1pan.getCurrentLevel());
+                }
+            } else if (mode == G2PAN) {
+                if (g2pan.drawFinished()) {
+                    // Show user his results
+                    float score = g2pan.calcLength();
+                    // JOptionPane construction
+                    Object[] buttonOptions3 = {"Següent nivell", "Sortir", "Recomençar"};
+                    int option3 = JOptionPane.showOptionDialog(this, "La teva puntuació és "
+                        +score+".", "Fi de joc", JOptionPane.YES_NO_CANCEL_OPTION,
+                        JOptionPane.PLAIN_MESSAGE, null, buttonOptions3, buttonOptions3[0]);
+                    // "Recomençar" option
+                    if (option3 == 2) g2pan.selectLevel(g2pan.getCurrentLevel());
+                    // "Sortir" option
+                    else if(option3 == 1) System.exit(0);
+                    // "Següent nivell" option
+                    else if (option3 == 0)
+                        g2pan.selectLevel(((g2pan.getCurrentLevel() + 1)<=3)?(g2pan.getCurrentLevel() + 1):3);
+                } else {
+                    Object[] buttonOptions = {"Cancel·lar", "Recomençar"};
+                    int option2 = JOptionPane.showOptionDialog(this, "Vols tornar a començar?",
+                            "Fi de joc", JOptionPane.YES_NO_OPTION,
+                            JOptionPane.PLAIN_MESSAGE, null, buttonOptions, buttonOptions[0]);
+                    // "Recomençar" option
+                    if (option2 == 1) g2pan.selectLevel(g2pan.getCurrentLevel());
+                }
+            }
         }
     }
 

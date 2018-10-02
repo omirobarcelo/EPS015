@@ -160,6 +160,8 @@ public class GPanel extends JPanel {
     static final int REAR_LENGTH = 50;
     static final int REAR_X = START_X - REAR_LENGTH;
 
+    static final Color DARK_GREEN = new Color(1, 186, 20);
+
     //////////////////////////////////////////////
     // GLOBAL VARIABLES                         //
     //////////////////////////////////////////////
@@ -219,8 +221,10 @@ public class GPanel extends JPanel {
                     try {
                     //        File f = new File("img/bicycle.png");
                     //        System.out.println(f.exists());
-                        BufferedImage img=ImageIO.read(new File("img/bicycle.png"));
-                        g.drawImage(img, REAR_X, start_y-5, null);
+                        g2d.setPaint(DARK_GREEN);
+                        g.drawLine(REAR_X, start_y, REAR_X, start_y);
+                        BufferedImage img = ImageIO.read(new File("img/bicycleDraw.png"));
+                        g.drawImage(img, REAR_X, start_y-31, null);
                     } catch (Exception e) {}
 
                     break;
@@ -239,7 +243,7 @@ public class GPanel extends JPanel {
                     break;
                 }
                 case DRAWN: {
-                    g2d.setPaint(new Color(1, 186, 20));    // Dark green
+                    g2d.setPaint(DARK_GREEN);
                     g2d.setStroke(new BasicStroke(3.5f));
                     g2d.draw(j1drawn);
                     break;
@@ -445,23 +449,23 @@ public class GPanel extends JPanel {
             finishNotOK = (me.getPoint().x >= back.get(0).x)
                     && (me.getPoint().x <= back.get(back.size()-1).x - 5);
             if (finishNotOK) {
-                JOptionPane.showMessageDialog(this, "Acaba, que no te farà mal.",
-                    "Fi invàlid", JOptionPane.WARNING_MESSAGE);
+                //JOptionPane.showMessageDialog(this, "Acaba, que no te farà mal.",
+                //    "Fi invàlid", JOptionPane.WARNING_MESSAGE);
                 //this.plotCurve(currentLevel);
-                secondStart = true;
+                Object[] buttonOptions = {"Tornar", "Recomençar"};
+                int option = JOptionPane.showOptionDialog(this, "Acaba, que no te"
+                        + " farà mal.\nPerò, vols tornar a començar?",
+                        "Fi invàlid", JOptionPane.YES_NO_OPTION,
+                        JOptionPane.PLAIN_MESSAGE, null, buttonOptions, buttonOptions[0]);
+                // "Recomençar" option
+                if (option == 1) this.plotCurve(currentLevel);
+                // "Tornar" option
+                else secondStart = true;
             } else {
                 finished = true;
                 setEndingOptionPane();
             }
         }
-    }
-
-    public int getCurrentLevel() {
-        return currentLevel;
-    }
-
-    public boolean drawFinished() {
-        return finished;
     }
 
     private void refillDrawnCurve() {
@@ -562,7 +566,7 @@ public class GPanel extends JPanel {
             System.out.println("-------------");
             for (Point p : drawn) System.out.println(p.x+", "+p.y);
 
-        // Calcula area between back curve and drawn curve
+        // Calculate area between back curve and drawn curve
         for (int i = 0; i < back.size(); i++) {
             area += (Math.max(back.get(i).y, drawn.get(i).y)
                     - Math.min(back.get(i).y, drawn.get(i).y));
@@ -593,6 +597,14 @@ public class GPanel extends JPanel {
             System.out.println(score);
 
         return score;
+    }
+    
+    public int getCurrentLevel() {
+        return currentLevel;
+    }
+
+    public boolean drawFinished() {
+        return finished;
     }
 
     //////////////////////////////////////////////
